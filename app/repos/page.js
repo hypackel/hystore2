@@ -6,13 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, RefreshCw, Plus, ExternalLink, Calendar, Package } from "lucide-react";
+import { Trash2, RefreshCw, Plus, ExternalLink, Calendar, Package, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ReposPage() {
-  const { repos, loading, addRepo, removeRepo, refreshRepo } = useRepo();
+  const { repos, loading, addRepo, removeRepo, refreshRepo, resetToDefaults } = useRepo();
   const [newRepoUrl, setNewRepoUrl] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleAddRepo = async (e) => {
     e.preventDefault();
@@ -35,6 +36,14 @@ export default function ReposPage() {
     }
   };
 
+  const handleResetToDefaults = async () => {
+    if (window.confirm("Are you sure you want to reset to default repositories? This will remove all your current repositories and reload the defaults.")) {
+      setIsResetting(true);
+      await resetToDefaults();
+      setIsResetting(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "Unknown";
     return new Date(dateString).toLocaleString();
@@ -49,12 +58,31 @@ export default function ReposPage() {
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Repositories</h1>
-          <Badge variant="secondary">
-            {repos.length} repo{repos.length !== 1 ? 's' : ''}
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Badge variant="secondary">
+              {repos.length} repo{repos.length !== 1 ? 's' : ''}
+            </Badge>
+            <Button
+              variant="outline"
+              onClick={handleResetToDefaults}
+              disabled={loading || isResetting}
+            >
+              {isResetting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset to Defaults
+                </>
+              )}
+            </Button>
+          </div>
         </div>
         <p className="text-muted-foreground">
-          Manage your app repositories. Add new sources or remove existing ones.
+          Manage your app repositories. Add new sources, remove existing ones, or reset to the default collection.
         </p>
       </div>
 
