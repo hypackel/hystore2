@@ -97,7 +97,7 @@ export default function AppsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredApps.map((app, index) => (
-            <Link key={`${app.bundleIdentifier}-${index}`} href={`/app/${encodeURIComponent(app.bundleIdentifier)}`}>
+            <Link key={`${app.bundleIdentifier}-${app.repoName}-${index}`} href={`/app/${encodeURIComponent(app.bundleIdentifier)}?repo=${encodeURIComponent(app.repoName)}`}>
               <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader className="pb-3">
                   <div className="flex items-start space-x-3">

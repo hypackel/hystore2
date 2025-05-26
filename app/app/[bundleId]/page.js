@@ -32,7 +32,23 @@ export default function AppDetailPage() {
   useEffect(() => {
     if (apps.length > 0 && params.bundleId) {
       const decodedBundleId = decodeURIComponent(params.bundleId);
-      const foundApp = apps.find(app => app.bundleIdentifier === decodedBundleId);
+      const urlParams = new URLSearchParams(window.location.search);
+      const repoName = urlParams.get('repo');
+      
+      let foundApp;
+      if (repoName) {
+        // Find app by both bundle ID and repo name for exact match
+        foundApp = apps.find(app => 
+          app.bundleIdentifier === decodedBundleId && 
+          app.repoName === decodeURIComponent(repoName)
+        );
+      }
+      
+      // Fallback to just bundle ID if repo-specific search fails
+      if (!foundApp) {
+        foundApp = apps.find(app => app.bundleIdentifier === decodedBundleId);
+      }
+      
       setApp(foundApp);
       if (foundApp?.versions?.length > 0) {
         setSelectedVersion(foundApp.versions[0]);
