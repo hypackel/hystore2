@@ -12,7 +12,6 @@ import { toast } from "sonner";
 export default function ReposPage() {
   const { repos, loading, addRepo, removeRepo, refreshRepo } = useRepo();
   const [newRepoUrl, setNewRepoUrl] = useState("");
-  const [newRepoName, setNewRepoName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddRepo = async (e) => {
@@ -23,10 +22,9 @@ export default function ReposPage() {
     }
 
     setIsAdding(true);
-    const success = await addRepo(newRepoUrl.trim(), newRepoName.trim());
+    const success = await addRepo(newRepoUrl.trim());
     if (success) {
       setNewRepoUrl("");
-      setNewRepoName("");
     }
     setIsAdding(false);
   };
@@ -68,36 +66,23 @@ export default function ReposPage() {
             <span>Add Repository</span>
           </CardTitle>
           <CardDescription>
-            Add a new repository by providing its JSON URL and an optional name.
+            Add a new repository by providing its JSON URL. The repository name will be automatically detected.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAddRepo} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="repo-url" className="text-sm font-medium">
-                  Repository URL *
-                </label>
-                <Input
-                  id="repo-url"
-                  type="url"
-                  placeholder="https://example.com/repo.json"
-                  value={newRepoUrl}
-                  onChange={(e) => setNewRepoUrl(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="repo-name" className="text-sm font-medium">
-                  Repository Name (optional)
-                </label>
-                <Input
-                  id="repo-name"
-                  placeholder="My Repository"
-                  value={newRepoName}
-                  onChange={(e) => setNewRepoName(e.target.value)}
-                />
-              </div>
+            <div className="space-y-2">
+              <label htmlFor="repo-url" className="text-sm font-medium">
+                Repository URL
+              </label>
+              <Input
+                id="repo-url"
+                type="url"
+                placeholder="https://example.com/repo.json"
+                value={newRepoUrl}
+                onChange={(e) => setNewRepoUrl(e.target.value)}
+                required
+              />
             </div>
             <Button type="submit" disabled={isAdding || loading}>
               {isAdding ? (
@@ -125,7 +110,7 @@ export default function ReposPage() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground text-center">
-                No repositories added yet. Add your first repository above.
+                {loading ? "Loading default repositories..." : "No repositories found. Default repositories will be loaded automatically."}
               </p>
             </CardContent>
           </Card>
