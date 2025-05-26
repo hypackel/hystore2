@@ -4,7 +4,9 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import Navigation from "@/components/Navigation";
 import { RepoProvider } from "@/lib/RepoContext";
+import { SettingsProvider } from "@/lib/SettingsContext";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import SettingsModal from "@/components/SettingsModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -69,16 +71,19 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          <RepoProvider>
-            <div className="min-h-screen bg-background">
-              <Navigation />
-              <main className="container mx-auto px-4 py-8">
-                {children}
-              </main>
-            </div>
-            <Toaster />
-            <ServiceWorkerRegistration />
-          </RepoProvider>
+          <SettingsProvider>
+            <RepoProvider>
+              <div className="min-h-screen bg-background">
+                <Navigation />
+                <main className="container mx-auto px-4 py-8">
+                  {children}
+                </main>
+              </div>
+              <Toaster />
+              <SettingsModal />
+              <ServiceWorkerRegistration />
+            </RepoProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

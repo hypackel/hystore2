@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRepo } from "@/lib/RepoContext";
+import { useSettings } from "@/lib/SettingsContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Calendar, User } from "lucide-react";
+import { Search, Download, Calendar, User, Smartphone, ExternalLink } from "lucide-react";
 
 export default function AppsPage() {
   const { apps, loading } = useRepo();
+  const { settings, generateAppUrl } = useSettings();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -34,6 +36,57 @@ export default function AppsPage() {
   const formatDate = (dateString) => {
     if (!dateString) return "Unknown date";
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleAppAction = (e, app) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = generateAppUrl(app);
+    window.open(url, '_blank');
+  };
+
+  const getGridClasses = () => {
+    const { gridColumns, viewMode } = settings;
+    let baseClasses = "grid gap-6";
+    
+    if (gridColumns === "auto") {
+      if (viewMode === "compact") {
+        baseClasses += " grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+      } else {
+        baseClasses += " grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+      }
+    } else {
+      const cols = Number.parseInt(gridColumns);
+      baseClasses += " grid-cols-1";
+      if (cols >= 2) baseClasses += " sm:grid-cols-2";
+      if (cols >= 3) baseClasses += " md:grid-cols-3";
+      if (cols >= 4) baseClasses += " lg:grid-cols-4";
+      if (cols >= 5) baseClasses += " xl:grid-cols-5";
+    }
+    
+    return baseClasses;
+  };
+
+  const getActionIcon = () => {
+    switch (settings.defaultAction) {
+      case "sidestore":
+        return <Smartphone className="h-4 w-4" />;
+      case "altstore":
+        return <ExternalLink className="h-4 w-4" />;
+      default:
+        return <Download className="h-4 w-4" />;
+    }
+  };
+
+  const getActionText = () => {
+    switch (settings.defaultAction) {
+      case "sidestore":
+        return "Open in SideStore";
+      case "altstore":
+        return "Open in AltStore";
+      default:
+        return "Download";
+    }
   };
 
   if (loading) {
@@ -95,67 +148,114 @@ export default function AppsPage() {
           <p className="text-muted-foreground">No apps found matching your criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={getGridClasses()}>
           {filteredApps.map((app, index) => (
             <Link key={`${app.bundleIdentifier}-${app.repoName}-${index}`} href={`/app/${encodeURIComponent(app.bundleIdentifier)}?repo=${encodeURIComponent(app.repoName)}`}>
-              <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start space-x-3">
+              <Card className={`h-full hover:shadow-lg transition-shadow cursor-pointer ${settings.viewMode === "compact" ? "compact-card" : ""}`}>
+                <CardHeader className={settings.viewMode === "compact" ? "pb-2 p-4" : "pb-3"}>
+                  <div className={`flex items-start space-x-3 ${settings.viewMode === "compact" ? "space-x-2" : ""}`}>
                     {app.iconURL && (
                       <img
                         src={app.iconURL}
                         alt={`${app.name} icon`}
-                        className="w-12 h-12 rounded-lg flex-shrink-0"
+                        className={`rounded-lg flex-shrink-0 ${settings.viewMode === "compact" ? "w-8 h-8" : "w-12 h-12"}`}
                         onError={(e) => {
                           e.target.style.display = 'none';
                         }}
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg line-clamp-2">{app.name}</CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {app.subtitle || app.localizedDescription}
-                      </CardDescription>
+                      <CardTitle className={`line-clamp-2 ${settings.viewMode === "compact" ? "text-base" : "text-lg"}`}>
+                        {app.name}
+                      </CardTitle>
+                      {settings.viewMode === "comfy" && (
+                        <CardDescription className="line-clamp-2">
+                          {app.subtitle || app.localizedDescription}
+                        </CardDescription>
+                      )}
                     </div>
+                    {settings.viewMode === "compact" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleAppAction(e, app)}
+                        className="h-8 w-8 p-0 flex-shrink-0"
+                      >
+                        {getActionIcon()}
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className={`space-y-3 ${settings.viewMode === "compact" ? "p-4 pt-0 space-y-2" : ""}`}>
                   <div className="flex flex-wrap gap-2">
-                    {app.category && (
-                      <Badge variant="secondary">
+                    {app.category && settings.showRepoNames && (
+                      <Badge variant="secondary" className={settings.viewMode === "compact" ? "text-xs" : ""}>
                         {app.category.charAt(0).toUpperCase() + app.category.slice(1)}
                       </Badge>
                     )}
-                    <Badge variant="outline">v{app.version}</Badge>
+                    {settings.showVersions && (
+                      <Badge variant="outline" className={settings.viewMode === "compact" ? "text-xs" : ""}>
+                        v{app.version}
+                      </Badge>
+                    )}
                   </div>
                   
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    {app.developerName && (
-                      <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4" />
-                        <span className="truncate">{app.developerName}</span>
-                      </div>
-                    )}
-                    {app.size && (
-                      <div className="flex items-center space-x-2">
-                        <Download className="h-4 w-4" />
-                        <span>{formatFileSize(app.size)}</span>
-                      </div>
-                    )}
-                    {app.versionDate && (
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDate(app.versionDate)}</span>
-                      </div>
-                    )}
-                    {app.repoName && (
-                      <div className="text-xs">
+                  {settings.viewMode === "comfy" && (
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      {app.developerName && (
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4" />
+                          <span className="truncate">{app.developerName}</span>
+                        </div>
+                      )}
+                      {app.size && settings.showFileSizes && (
+                        <div className="flex items-center space-x-2">
+                          <Download className="h-4 w-4" />
+                          <span>{formatFileSize(app.size)}</span>
+                        </div>
+                      )}
+                      {app.versionDate && settings.showDates && (
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>{formatDate(app.versionDate)}</span>
+                        </div>
+                      )}
+                      {app.repoName && settings.showRepoNames && (
+                        <div className="text-xs">
+                          <Badge variant="outline" className="text-xs">
+                            {app.repoName}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {settings.viewMode === "compact" && (
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      {app.repoName && settings.showRepoNames && (
                         <Badge variant="outline" className="text-xs">
                           {app.repoName}
                         </Badge>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                      {app.size && settings.showFileSizes && (
+                        <span>{formatFileSize(app.size)}</span>
+                      )}
+                    </div>
+                  )}
+
+                  {settings.viewMode === "comfy" && (
+                    <div className="pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => handleAppAction(e, app)}
+                        className="w-full"
+                      >
+                        {getActionIcon()}
+                        <span className="ml-2">{getActionText()}</span>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </Link>

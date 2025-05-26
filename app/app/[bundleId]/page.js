@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useRepo } from "@/lib/RepoContext";
+import { useSettings } from "@/lib/SettingsContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export default function AppDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { apps, loading } = useRepo();
+  const { settings, generateAppUrl } = useSettings();
   const [app, setApp] = useState(null);
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [showAllVersions, setShowAllVersions] = useState(false);
@@ -71,6 +73,33 @@ export default function AppDetailPage() {
   const handleDownload = (downloadUrl) => {
     if (downloadUrl) {
       window.open(downloadUrl, '_blank');
+    }
+  };
+
+  const handleAppAction = (appToDownload) => {
+    const url = generateAppUrl(appToDownload);
+    window.open(url, '_blank');
+  };
+
+  const getActionIcon = () => {
+    switch (settings.defaultAction) {
+      case "sidestore":
+        return <Smartphone className="h-4 w-4" />;
+      case "altstore":
+        return <ExternalLink className="h-4 w-4" />;
+      default:
+        return <Download className="h-4 w-4" />;
+    }
+  };
+
+  const getActionText = () => {
+    switch (settings.defaultAction) {
+      case "sidestore":
+        return "Open in SideStore";
+      case "altstore":
+        return "Open in AltStore";
+      default:
+        return "Download";
     }
   };
 
@@ -148,11 +177,11 @@ export default function AppDetailPage() {
             </div>
             <div className="flex flex-col space-y-2">
               <Button 
-                onClick={() => handleDownload(app.downloadURL)}
+                onClick={() => handleAppAction(app)}
                 className="w-full md:w-auto"
               >
-                <Download className="h-4 w-4 mr-2" />
-                Download
+                {getActionIcon()}
+                {getActionText()}
               </Button>
               {app.size && (
                 <p className="text-sm text-muted-foreground text-center">

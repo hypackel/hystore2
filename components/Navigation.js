@@ -4,9 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/lib/SettingsContext";
+import { Settings } from "lucide-react";
 
 const Navigation = () => {
   const pathname = usePathname();
+  const { openSettings } = useSettings();
 
   const navItems = [
     { href: "/", label: "Apps", icon: "📱" },
@@ -32,6 +35,18 @@ const Navigation = () => {
                 </Link>
               ))}
             </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openSettings}
+              className="h-9 w-9"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="sr-only">Settings</span>
+            </Button>
           </div>
         </div>
       </div>

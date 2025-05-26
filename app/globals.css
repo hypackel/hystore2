@@ -120,6 +120,19 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+
+  /* Compact card styling */
+  .compact-card {
+    min-height: auto;
+  }
+  
+  .compact-card .card-header {
+    padding: 0.75rem;
+  }
+  
+  .compact-card .card-content {
+    padding: 0 0.75rem 0.75rem 0.75rem;
+  }
 }
 
 /* PWA safe area support for devices with notches */
